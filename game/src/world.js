@@ -1,10 +1,10 @@
-// Warung Sizzle's kitchen rules, with no drawing and no browser in it:
+// World Kitchen Rush's kitchen rules, with no drawing and no browser in it:
 // customer orders with patience timers, the wok (pick a dish, add its
 // ingredients in order, let it sizzle, plate it), scoring, combos and the
 // shift clock. step() advances one fixed step; the action methods return
 // event flags so the caller can play sounds and announcements.
 
-import { COOK_SECONDS, MAX_ORDERS, SHIFT_SECONDS } from './config.js';
+import { COOK_SECONDS, DEFAULT_RESTAURANT_NAME, MAX_ORDERS, SHIFT_SECONDS } from './config.js';
 import { CUSTOMER_FACES, CUSTOMER_NAMES, RECIPES } from './recipes.js';
 
 export const EVENT_ADDED = 1;
@@ -32,7 +32,15 @@ export function createWorld(random) {
     message: 'Pick an order to start cooking!',
     messageT: 0,
     over: false,
+    restaurantName: DEFAULT_RESTAURANT_NAME,
+    restaurantEditing: false,
   };
+
+  /** The player names their own restaurant; the sign hangs over the kitchen. */
+  function setRestaurantName(name) {
+    const clean = String(name).replace(/\s+/g, ' ').trim().slice(0, 24);
+    state.restaurantName = clean || DEFAULT_RESTAURANT_NAME;
+  }
 
   function spawnOrder() {
     const recipe = RECIPES[Math.floor(random() * RECIPES.length)];
@@ -183,5 +191,5 @@ export function createWorld(random) {
   }
 
   reset();
-  return { state, reset, selectOrder, addIngredient, stirWok, trashWok, servePlated, step };
+  return { state, reset, selectOrder, addIngredient, stirWok, trashWok, servePlated, step, setRestaurantName };
 }

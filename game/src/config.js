@@ -1,4 +1,4 @@
-// Warung Sizzle — tuning, palette and the shared kitchen layout.
+// World Kitchen Rush — tuning, palette and the shared kitchen layout.
 // The kitchen is a fixed 1280x720 logical room; the renderer scales it to the
 // window, and input converts pointer positions back into the same coordinates,
 // so the layout constants below are the single source both sides agree on.
@@ -32,7 +32,9 @@ export const PALETTE = {
 };
 
 export const FONT = 'system-ui, -apple-system, "Segoe UI", sans-serif';
-export const BEST_KEY = 'warung-sizzle.best';
+export const BEST_KEY = 'world-kitchen-rush.best';
+export const NAME_KEY = 'world-kitchen-rush.name';
+export const DEFAULT_RESTAURANT_NAME = 'Blue Fork Bistro';
 
 // Layout: order cards across the top board, wok centre-left, the serving
 // plate centre-right, and the ingredient counter along the bottom.
@@ -48,9 +50,9 @@ export const LAYOUT = {
   trashButton: { x: 926, y: 462, w: 176, h: 46 },
   ingredientY: 560,
   ingredientH: 128,
-  ingredientX0: 28,
-  ingredientW: 128,
-  ingredientGap: 8,
+  ingredientX0: 22,
+  ingredientW: 96,
+  ingredientGap: 5,
 };
 
 export function ingredientRect(index) {

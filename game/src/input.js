@@ -35,10 +35,11 @@ export function createInput(canvas, ingredients) {
   });
 
   window.addEventListener('keydown', (event) => {
-    const digit = /^Digit([1-9])$/.exec(event.code);
-    if (digit) {
-      const item = ingredients[Number(digit[1]) - 1];
-      if (item) ingredientPick = item.id;
+    // Counter keys in bin order: digits 1-9, then 0, then Q and W for the
+    // last two bins — the same labels the counter draws under each bin.
+    const keyIndex = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0', 'KeyQ', 'KeyW'].indexOf(event.code);
+    if (keyIndex >= 0 && ingredients[keyIndex]) {
+      ingredientPick = ingredients[keyIndex].id;
     } else if (KEY_ACTIONS.has(event.code)) {
       if (!event.repeat) actions |= KEY_ACTIONS.get(event.code);
     } else return;

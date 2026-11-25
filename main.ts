@@ -1,12 +1,14 @@
-// Warung Sizzle, a cooking game entry (Node 22, standard library only): the game is this
+// World Kitchen Rush, a cooking game entry (Node 22, standard library only): the game is this
 // directory's game/ folder, plain static files a desktop browser loads offline (game/index.html
 // and its ES modules, no library and no network request), and this program hands it in. It copies
 // game/ and screenshots/ from beside this file to /output and writes /output/dossier.json, the
-// summary the judge reads, with the vendored make.fun library. The game: run a night warung for
-// a 150-second shift — click a customer's order ticket, add the dish's ingredients to the wok in
-// recipe order from the counter (or keys 1-9), stir while it sizzles, then serve the plated dish
-// before the customer's patience bar runs out; combos, coins, a trash-the-wok do-over, WebAudio
-// kitchen sounds, title, pause and shift-over screens included.
+// summary the judge reads, with the vendored make.fun library. The game: name your own
+// restaurant, then run it for a 150-second dinner shift — click a customer's order ticket
+// (Margherita Pizza, Chicken Carbonara, Nasi Goreng, Dan Dan Noodles, Chicken Biryani), add the
+// dish's ingredients to the wok in recipe order from the counter (or the counter keys), stir
+// while it sizzles, then serve the plated dish before the customer's patience bar runs out;
+// combos, coins, a trash-the-wok do-over, WebAudio kitchen sounds, title, pause and shift-over
+// screens included.
 //
 // Serve it locally with `node serve.ts`, then open http://localhost:8080.
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:

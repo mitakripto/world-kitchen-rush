@@ -1,12 +1,22 @@
-// Drawing only: the kitchen state in, pixels out. A warm warung at night —
-// wooden order board across the top with three customer tickets, a flaming
-// wok on the left stove, the serving plate on the right, and the ingredient
-// counter along the bottom. Everything the judge must see is on this canvas:
-// kitchen, order board, ingredients, a dish mid-assembly, timers, and a
-// plate ready to serve.
+// Drawing only: the kitchen state in, pixels out. A warm restaurant kitchen
+// at night — wooden order board across the top with three customer tickets,
+// a flaming wok on the left stove, the serving plate on the right, and the
+// ingredient counter along the bottom, all under the player's own restaurant
+// sign. Everything the judge must see is on this canvas: kitchen, order
+// board, ingredients, a dish mid-assembly, timers, and a plate ready to serve.
 
 import { COOK_SECONDS, FIELD, FONT, LAYOUT, PALETTE, ingredientRect } from './config.js';
 import { INGREDIENTS, INGREDIENT_BY_ID } from './recipes.js';
+
+/** The title panel's line count and the name box inside it: main.js hit-tests
+ * clicks against the same rectangle the renderer draws. */
+export const TITLE_LINE_COUNT = 4;
+
+export function nameBoxRect() {
+  const h = 150 + TITLE_LINE_COUNT * 36 + 70 + 64;
+  const y = (FIELD.height - h) / 2;
+  return { x: (FIELD.width - 520) / 2, y: y + h - 118, w: 520, h: 44 };
+}
 
 export const SCREEN_TITLE = 'title';
 export const SCREEN_PLAY = 'play';
@@ -42,7 +52,7 @@ export function createRenderer(canvas) {
   function drawHeader(state, best) {
     ctx.fillStyle = PALETTE.wallBand;
     ctx.fillRect(0, 0, FIELD.width, 62);
-    text('🔥 WARUNG SIZZLE', 28, 42, 30, PALETTE.accent, 'left', 800);
+    text(`🔥 ${state.restaurantName}`, 28, 42, 27, PALETTE.accent, 'left', 800);
     const mm = Math.floor(state.shiftT / 60);
     const ss = String(Math.floor(state.shiftT % 60)).padStart(2, '0');
     const urgent = state.shiftT <= 30;
@@ -225,12 +235,12 @@ export function createRenderer(canvas) {
       ctx.strokeStyle = isNext ? PALETTE.accent : '#7d5a33';
       ctx.lineWidth = isNext ? 5 : 2;
       ctx.stroke();
-      ctx.font = '44px serif';
+      ctx.font = '36px serif';
       ctx.textAlign = 'center';
-      ctx.fillText(item.icon, rect.x + rect.w / 2, rect.y + 58);
-      text(item.name, rect.x + rect.w / 2, rect.y + 92, 19, PALETTE.cream, 'center', 700);
-      text(`key ${item.key}`, rect.x + rect.w / 2, rect.y + 116, 15, PALETTE.muted, 'center');
-      if (isNext) text('▼ NEXT', rect.x + rect.w / 2, rect.y - 8, 17, PALETTE.accent, 'center', 800);
+      ctx.fillText(item.icon, rect.x + rect.w / 2, rect.y + 52);
+      text(item.name, rect.x + rect.w / 2, rect.y + 88, 15, PALETTE.cream, 'center', 700);
+      text(`key ${item.key}`, rect.x + rect.w / 2, rect.y + 112, 13, PALETTE.muted, 'center');
+      if (isNext) text('▼ NEXT', rect.x + rect.w / 2, rect.y - 8, 15, PALETTE.accent, 'center', 800);
     });
   }
 
@@ -242,13 +252,17 @@ export function createRenderer(canvas) {
     text(state.message, 640, 535, 19, PALETTE.cream, 'center', 600);
   }
 
-  function drawPanel(title, lines, prompt) {
+  function panelRect(lines, hasNameBox) {
+    const w = 880;
+    const h = 150 + lines.length * 36 + 70 + (hasNameBox ? 64 : 0);
+    return { x: (FIELD.width - w) / 2, y: (FIELD.height - h) / 2, w, h };
+  }
+
+  function drawPanel(title, lines, prompt, nameBox) {
     ctx.fillStyle = 'rgba(16,10,5,0.78)';
     ctx.fillRect(0, 0, FIELD.width, FIELD.height);
-    const w = 880;
-    const h = 150 + lines.length * 36 + 70;
-    const x = (FIELD.width - w) / 2;
-    const y = (FIELD.height - h) / 2;
+    const panel = panelRect(lines, Boolean(nameBox));
+    const { x, y, w, h } = panel;
     roundRect(ctx, x, y, w, h, 18);
     ctx.fillStyle = '#241407';
     ctx.fill();
@@ -259,7 +273,19 @@ export function createRenderer(canvas) {
     lines.forEach((line, index) => {
       text(line, FIELD.width / 2, y + 138 + index * 36, 23, PALETTE.cream, 'center');
     });
-    text(prompt, FIELD.width / 2, y + h - 36, 24, PALETTE.good, 'center', 800);
+    if (nameBox) {
+      const box = nameBoxRect();
+      text('YOUR RESTAURANT NAME — click the box and type', FIELD.width / 2, box.y - 10, 16, PALETTE.muted, 'center', 700);
+      roundRect(ctx, box.x, box.y, box.w, box.h, 10);
+      ctx.fillStyle = '#120b04';
+      ctx.fill();
+      ctx.strokeStyle = nameBox.editing ? PALETTE.good : PALETTE.boardEdge;
+      ctx.lineWidth = nameBox.editing ? 3 : 2;
+      ctx.stroke();
+      const cursor = nameBox.editing && Math.floor(nameBox.time * 2) % 2 === 0 ? '▌' : '';
+      text(`${nameBox.name}${cursor} ✎`, box.x + 18, box.y + 31, 24, PALETTE.cream, 'left', 700);
+    }
+    text(prompt, FIELD.width / 2, y + h - 30, 24, PALETTE.good, 'center', 800);
   }
 
   function draw(state, screen, best, time) {
@@ -276,13 +302,16 @@ export function createRenderer(canvas) {
     drawCounter(state);
     drawMessage(state);
     if (screen === SCREEN_TITLE) {
-      drawPanel('🔥 WARUNG SIZZLE', [
-        'Run the night warung! Cook Nasi Goreng & Mie Goreng to order.',
-        'Click an order ticket, add its ingredients IN ORDER (or keys 1-9),',
-        'stir the sizzling wok, then SERVE the plate before patience runs out.',
-        'Wrong ingredient? Combo lost. In a hurry? Trash the wok and restart.',
-        best ? `Best score so far: ${best}` : 'Your first shift starts now — 150 seconds!',
-      ], 'Click or press Space to open the warung');
+      drawPanel('🔥 WORLD KITCHEN RUSH', [
+        'Run your own restaurant for one 150-second dinner shift.',
+        'Cook Italy, Indonesia, China and India to order: click a ticket, add',
+        'its ingredients IN ORDER (or the counter keys), stir the sizzling wok,',
+        'then SERVE the plate before the patience bar runs out.',
+      ], state.restaurantEditing ? 'Typing… press Enter or click anywhere to finish the name' : 'Click or press Space to open your restaurant', {
+        name: state.restaurantName,
+        editing: state.restaurantEditing,
+        time,
+      });
     } else if (screen === SCREEN_PAUSED) {
       drawPanel('⏸ Paused', ['The wok will wait for you.'], 'Press P or Space to keep cooking');
     } else if (screen === SCREEN_OVER) {
